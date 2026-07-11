@@ -1,0 +1,8 @@
+#!/bin/bash
+# Extract SHA keys for Android debug and release builds
+
+cd ..
+echo "Extracting SHA keys using Gradle signingReport..."
+cd android
+./gradlew signingReport
+cd ..

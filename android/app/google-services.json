@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "307565940228",
+    "project_id": "narrata-c257e",
+    "storage_bucket": "narrata-c257e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307565940228:android:b96627287fa0c00826af51",
+        "android_client_info": {
+          "package_name": "com.narrata.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvPPotGahx2mWO4Fl8CuEQIjTPUvITvsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
