@@ -19,10 +19,7 @@ import 'package:narrata/core/config/env_config.dart';
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -30,24 +27,13 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       default:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions are not supported for this platform.',
-        );
+        return windows;
     }
   }
 
@@ -66,5 +52,38 @@ class DefaultFirebaseOptions {
     projectId: EnvConfig.projectId,
     storageBucket: EnvConfig.storageBucket,
     iosBundleId: EnvConfig.iosBundleId,
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBXXyDc6GrvWiIuLy6YkoU2f1nflLyO7oE',
+    appId: '1:307565940228:web:2041df638d9553c126af51',
+    messagingSenderId: '307565940228',
+    projectId: 'narrata-c257e',
+    authDomain: 'narrata-c257e.firebaseapp.com',
+    storageBucket: 'narrata-c257e.firebasestorage.app',
+    measurementId: 'G-S1CMYKF9QX',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCLbTO7_3NTf72mbvsX4OFiUQuIcm1kIWs',
+    appId: '1:307565940228:ios:650dacebb08d0d0a26af51',
+    messagingSenderId: '307565940228',
+    projectId: 'narrata-c257e',
+    storageBucket: 'narrata-c257e.firebasestorage.app',
+    androidClientId:
+        '307565940228-33sbmfu4ge3rm8jk9ci1bv56l5j0ul2n.apps.googleusercontent.com',
+    iosClientId:
+        '307565940228-9ja1ua4dnro71co3hho7j8to6ldan3ms.apps.googleusercontent.com',
+    iosBundleId: 'com.narrata.app',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBXXyDc6GrvWiIuLy6YkoU2f1nflLyO7oE',
+    appId: '1:307565940228:web:9660380872a9cbbe26af51',
+    messagingSenderId: '307565940228',
+    projectId: 'narrata-c257e',
+    authDomain: 'narrata-c257e.firebaseapp.com',
+    storageBucket: 'narrata-c257e.firebasestorage.app',
+    measurementId: 'G-G2S33GXB38',
   );
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:narrata/core/router/app_router.dart';
@@ -16,18 +15,20 @@ void main() async {
   runApp(const ProviderScope(child: NarrataApp()));
 }
 
-class NarrataApp extends StatelessWidget {
+class NarrataApp extends ConsumerWidget {
   const NarrataApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+
     return MaterialApp.router(
       title: 'Narrata',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }

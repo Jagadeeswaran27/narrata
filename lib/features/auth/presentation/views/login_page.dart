@@ -186,9 +186,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               width: 22,
                               height: 22,
                             ),
-                            onPressed: () {
-                              context.go('/home');
-                            },
+                            onPressed: isLoading
+                                ? () {}
+                                : () {
+                                    ref
+                                        .read(authViewModelProvider.notifier)
+                                        .signInWithGoogle();
+                                  },
                           ),
                           const SizedBox(width: 16),
                           _buildSocialButton(

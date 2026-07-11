@@ -12,7 +12,20 @@
           "package_name": "com.narrata.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "307565940228-33sbmfu4ge3rm8jk9ci1bv56l5j0ul2n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.narrata.app",
+            "certificate_hash": "bdfaed9b5b8242a1f4a32fc223c5fad8e05164bd"
+          }
+        },
+        {
+          "client_id": "307565940228-ilcki8kl16v4d95os0ubi3mqu1pp8hja.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAvPPotGahx2mWO4Fl8CuEQIjTPUvITvsg"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "307565940228-ilcki8kl16v4d95os0ubi3mqu1pp8hja.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "307565940228-9ja1ua4dnro71co3hho7j8to6ldan3ms.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.narrata.app"
+              }
+            }
+          ]
         }
       }
     }

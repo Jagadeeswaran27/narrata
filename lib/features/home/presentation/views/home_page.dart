@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:narrata/core/widgets/bottom_nav_bar.dart';
+import 'package:narrata/features/auth/presentation/view_models/auth_view_model.dart';
 import 'package:narrata/features/home/domain/models/story.dart';
 import 'package:narrata/features/home/presentation/views/widgets/category_row.dart';
 import 'package:narrata/features/home/presentation/views/widgets/featured_story_carousel.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -51,6 +54,17 @@ class HomePage extends StatelessWidget {
                           ),
                     ),
                     const Spacer(),
+                    // Logout button
+                    IconButton(
+                      icon: Icon(
+                        Icons.logout,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      onPressed: () {
+                        ref.read(authViewModelProvider.notifier).signOut();
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     // Circular search button
                     Container(
                       width: 42,
