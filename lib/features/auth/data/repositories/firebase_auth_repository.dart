@@ -95,7 +95,9 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signInWithGoogle() async {
     try {
-      await GoogleSignIn.instance.initialize();
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '307565940228-ilcki8kl16v4d95os0ubi3mqu1pp8hja.apps.googleusercontent.com',
+      );
       final googleUser = await GoogleSignIn.instance.authenticate();
 
       final googleAuth = googleUser.authentication;
@@ -151,19 +153,23 @@ class FirebaseAuthRepository implements AuthRepository {
     required String phoneNumber,
     required Function(String verificationId) onCodeSent,
     required Function(Exception e) onFailed,
+    Function(String smsCode)? onAutoResolve,
   }) async {
     await _firebaseAuth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-resolution on Android.
-        // If this happens, we can automatically sign them in.
-        try {
-          final userCredential = await _firebaseAuth.signInWithCredential(
-            credential,
-          );
-          await _checkAndCreateUserDoc(userCredential.user);
-        } catch (e) {
-          onFailed(Exception(e.toString()));
+        if (credential.smsCode != null && onAutoResolve != null) {
+          onAutoResolve(credential.smsCode!);
+        } else {
+          // Auto-resolution on Android fallback
+          try {
+            final userCredential = await _firebaseAuth.signInWithCredential(
+              credential,
+            );
+            await _checkAndCreateUserDoc(userCredential.user);
+          } catch (e) {
+            onFailed(Exception(e.toString()));
+          }
         }
       },
       verificationFailed: (FirebaseAuthException e) {

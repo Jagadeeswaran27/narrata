@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:narrata/features/stories/data/repositories/story_repository.dart';
-import 'package:narrata/features/favorites/presentation/view_models/favorites_view_model.dart';
 
 part 'story_favorite_view_model.g.dart';
 
@@ -10,7 +9,7 @@ part 'story_favorite_view_model.g.dart';
 Stream<bool> storyFavoriteStatus(Ref ref, String storyId) {
   final repository = ref.watch(storyRepositoryProvider);
   final user = FirebaseAuth.instance.currentUser;
-  
+
   if (user == null) {
     return Stream.value(false);
   }
@@ -31,8 +30,8 @@ class StoryFavoriteAction extends _$StoryFavoriteAction {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await repository.toggleFavoriteStatus(
-        user.uid, 
-        storyId, 
+        user.uid,
+        storyId,
         isCurrentlyFavorite,
       );
     });

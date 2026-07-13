@@ -104,6 +104,18 @@ class _OtpAuthPageState extends ConsumerState<OtpAuthPage> {
       );
     });
 
+    ref.listen<String?>(autoRetrievedSmsCodeProvider, (previous, next) {
+      if (next != null && next.isNotEmpty) {
+        _pinController.text = next;
+        if (next.length == 6) {
+          _verifyOtp();
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(autoRetrievedSmsCodeProvider.notifier).setCode(null);
+        });
+      }
+    });
+
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 64,
@@ -182,10 +194,10 @@ class _OtpAuthPageState extends ConsumerState<OtpAuthPage> {
                           focusedPinTheme: focusedPinTheme,
                           submittedPinTheme: submittedPinTheme,
                           separatorBuilder: (index) => const SizedBox(width: 8),
-                          pinputAutovalidateMode:
-                              PinputAutovalidateMode.onSubmit,
+                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
                           showCursor: true,
                           keyboardType: TextInputType.number,
+                          autofillHints: const [AutofillHints.oneTimeCode],
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                           ],

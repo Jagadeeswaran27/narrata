@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:narrata/core/widgets/bottom_nav_bar.dart';
-import 'package:narrata/features/favorites/presentation/view_models/favorites_view_model.dart';
 
 class MainScaffold extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;

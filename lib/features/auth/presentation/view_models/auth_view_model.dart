@@ -74,6 +74,9 @@ class AuthViewModel extends _$AuthViewModel {
           // Also fire the callback if the widget is still alive (Android flow)
           onCodeSent?.call(verificationId);
         },
+        onAutoResolve: (smsCode) {
+          ref.read(autoRetrievedSmsCodeProvider.notifier).setCode(smsCode);
+        },
         onFailed: (Exception e) {
           state = AsyncError(e, StackTrace.current);
         },
@@ -104,4 +107,12 @@ class AuthViewModel extends _$AuthViewModel {
       await repository.signOut();
     });
   }
+}
+
+@riverpod
+class AutoRetrievedSmsCode extends _$AutoRetrievedSmsCode {
+  @override
+  String? build() => null;
+
+  void setCode(String? code) => state = code;
 }

@@ -20,6 +20,7 @@ abstract class AuthRepository {
     required String phoneNumber,
     required Function(String verificationId) onCodeSent,
     required Function(Exception e) onFailed,
+    Function(String smsCode)? onAutoResolve,
   });
 
   Future<void> signInWithOtp({
