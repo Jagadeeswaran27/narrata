@@ -3,20 +3,23 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:narrata/features/auth/presentation/view_models/auth_view_model.dart';
 
 import 'package:narrata/core/widgets/auth_divider.dart';
 import 'package:narrata/core/widgets/auth_prompt.dart';
 import 'package:narrata/core/widgets/auth_text_field.dart';
 import 'package:narrata/core/widgets/focus_dismissible.dart';
 
-class PhoneAuthPage extends StatefulWidget {
+class PhoneAuthPage extends ConsumerStatefulWidget {
   const PhoneAuthPage({super.key});
 
   @override
-  State<PhoneAuthPage> createState() => _PhoneAuthPageState();
+  ConsumerState<PhoneAuthPage> createState() => _PhoneAuthPageState();
 }
 
-class _PhoneAuthPageState extends State<PhoneAuthPage> {
+class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
 
@@ -28,16 +31,49 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      context.go('/home');
+      final phoneNumber = '+91${_phoneController.text}';
+      ref
+          .read(authViewModelProvider.notifier)
+          .verifyPhoneNumber(
+            phoneNumber,
+            onCodeSent: (verificationId) {
+              if (!mounted) return;
+              context.go(
+                '/phone-auth/otp-auth',
+                extra: {
+                  'verificationId': verificationId,
+                  'phoneNumber': phoneNumber,
+                },
+              );
+            },
+          );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final authState = ref.watch(authViewModelProvider);
+
+    ref.listen<AsyncValue<void>>(authViewModelProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, stackTrace) {
+          if (ModalRoute.of(context)?.isCurrent != true) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.toString().replaceAll('Exception: ', '')),
+              backgroundColor: colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      );
+    });
 
     return FocusDismissible(
-      child: Scaffold(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -114,8 +150,16 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                               const SizedBox(height: 24),
 
                               ElevatedButton(
-                                onPressed: _submit,
-                                child: const Text('Send OTP'),
+                                onPressed: authState.isLoading ? null : _submit,
+                                child: authState.isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Send OTP'),
                               ),
                             ],
                           ),
@@ -174,6 +218,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
           ),
         ),
       ),
+     ),
     );
   }
 

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 
-class SplashPage extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
+class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
@@ -37,7 +39,9 @@ class _SplashPageState extends State<SplashPage>
   Future<void> _navigateAfterDelay() async {
     await Future.delayed(const Duration(seconds: 3));
     if (mounted) {
-      context.go('/login');
+      // Navigate to /home. The AppRouter will automatically intercept
+      // this and redirect to /walkthrough if the user is unauthenticated.
+      context.go('/home');
     }
   }
 

@@ -76,6 +76,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'uid': user.uid,
           'authMethod': 'email',
           'credits': 3,
+          'isOnboardingCompleted': false,
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -120,6 +121,7 @@ class FirebaseAuthRepository implements AuthRepository {
           'uid': user.uid,
           'authMethod': 'google',
           'credits': 3,
+          'isOnboardingCompleted': false,
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -141,6 +143,133 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception(e.message ?? 'An unknown error occurred.');
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String verificationId) onCodeSent,
+    required Function(Exception e) onFailed,
+  }) async {
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Auto-resolution on Android.
+        // If this happens, we can automatically sign them in.
+        try {
+          final userCredential = await _firebaseAuth.signInWithCredential(
+            credential,
+          );
+          await _checkAndCreateUserDoc(userCredential.user);
+        } catch (e) {
+          onFailed(Exception(e.toString()));
+        }
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        if (e.code == 'invalid-phone-number') {
+          onFailed(Exception('The provided phone number is not valid.'));
+        } else {
+          onFailed(Exception(e.message ?? 'Verification failed.'));
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        onCodeSent(verificationId);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        // We handle timeout manually via timer in the UI
+      },
+    );
+  }
+
+  @override
+  Future<void> signInWithOtp({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
+      await _checkAndCreateUserDoc(userCredential.user);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-verification-code') {
+        throw Exception('The code you entered is incorrect.');
+      } else if (e.code == 'invalid-verification-id') {
+        throw Exception('Verification session expired. Please try again.');
+      }
+      throw Exception(e.message ?? 'An unknown error occurred.');
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  Future<void> _checkAndCreateUserDoc(User? user) async {
+    if (user != null) {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) {
+        // Create the user document in Firestore for new users via phone auth
+        await _firestore.collection('users').doc(user.uid).set({
+          'fullName': user.displayName ?? '',
+          'email': user.email ?? '',
+          'uid': user.uid,
+          'phone': user.phoneNumber ?? '',
+          'authMethod': 'phone',
+          'credits': 3,
+          'isOnboardingCompleted': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+    }
+  }
+
+  @override
+  Future<void> updateName(String name) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user logged in.');
+
+    try {
+      await user.updateDisplayName(name);
+      await _firestore.collection('users').doc(user.uid).update({
+        'fullName': name,
+      });
+    } catch (e) {
+      throw Exception('Failed to update name: $e');
+    }
+  }
+
+  @override
+  Future<void> updateEmail(String email) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user logged in.');
+
+    try {
+      // Just updating the database for Phone Auth accounts.
+      await _firestore.collection('users').doc(user.uid).update({
+        'email': email,
+      });
+    } catch (e) {
+      throw Exception('Failed to update email: $e');
+    }
+  }
+
+  @override
+  Future<void> updatePhone(String phone) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('No user logged in.');
+
+    try {
+      // As requested, only updating the database for Google/Email accounts.
+      await _firestore.collection('users').doc(user.uid).update({
+        'phone': phone,
+      });
+    } catch (e) {
+      throw Exception('Failed to update phone number: $e');
     }
   }
 

@@ -17,6 +17,7 @@ class AuthTextField extends StatefulWidget {
   final void Function(String)? onFieldSubmitted;
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
+  final bool enabled;
 
   const AuthTextField({
     super.key,
@@ -32,6 +33,7 @@ class AuthTextField extends StatefulWidget {
     this.onFieldSubmitted,
     this.maxLength,
     this.inputFormatters,
+    this.enabled = true,
   });
 
   @override
@@ -116,6 +118,7 @@ class _AuthTextFieldState extends State<AuthTextField>
           keyboardType: widget.keyboardType,
           autofillHints: widget.autofillHints,
           autovalidateMode: AutovalidateMode.disabled,
+          enabled: widget.enabled,
           maxLength: widget.maxLength,
           inputFormatters: widget.inputFormatters,
           decoration: InputDecoration(

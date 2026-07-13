@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:narrata/features/stories/domain/models/story.dart';
 
 class CategoryData {
   final String title;
-  final List<StoryData> stories;
+  final List<Story> stories;
 
   CategoryData({required this.title, required this.stories});
-}
-
-class StoryData {
-  final String title;
-  final String duration;
-
-  StoryData(this.title, this.duration);
 }
 
 class FeaturedStoryData {

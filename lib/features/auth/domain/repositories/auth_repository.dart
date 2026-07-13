@@ -16,5 +16,20 @@ abstract class AuthRepository {
 
   Future<void> signInWithGoogle();
 
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String verificationId) onCodeSent,
+    required Function(Exception e) onFailed,
+  });
+
+  Future<void> signInWithOtp({
+    required String verificationId,
+    required String smsCode,
+  });
+
+  Future<void> updateName(String name);
+  Future<void> updateEmail(String email);
+  Future<void> updatePhone(String phone);
+
   Future<void> signOut();
 }

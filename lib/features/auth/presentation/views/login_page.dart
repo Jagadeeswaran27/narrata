@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,6 +53,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(authViewModelProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
+          if (ModalRoute.of(context)?.isCurrent != true) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(error.toString().replaceAll('Exception: ', '')),
@@ -67,7 +69,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isLoading = authState.isLoading;
 
     return FocusDismissible(
-      child: Scaffold(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -224,6 +228,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               );
             },
           ),
+        ),
         ),
       ),
     );
