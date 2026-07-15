@@ -11,6 +11,7 @@ import 'package:narrata/features/stories/presentation/view_models/story_favorite
 import 'package:narrata/features/stories/presentation/views/widgets/audio_visualizer.dart';
 import 'package:narrata/features/stories/presentation/views/widgets/royal_divider.dart';
 import 'package:narrata/core/widgets/storage_image.dart';
+import 'package:narrata/core/services/download_service.dart';
 
 // We'll manage the AudioPlayer in a simple StatefulWidget for easier lifecycle control
 // tied directly to this specific screen, as it's a 1:1 relationship.
@@ -27,6 +28,8 @@ class StoryReadPage extends ConsumerStatefulWidget {
 class _StoryReadPageState extends ConsumerState<StoryReadPage> {
   late AudioPlayer _audioPlayer;
   bool _isAudioReady = false;
+  bool _isDownloading = false;
+  bool _isRepeat = false;
   String? _audioUrl;
 
   // Highlight tracking
@@ -78,14 +81,23 @@ class _StoryReadPageState extends ConsumerState<StoryReadPage> {
   Future<void> _initAudio() async {
     try {
       if (widget.story.audioPath.isNotEmpty) {
-        final ref = FirebaseStorage.instance.ref().child(
-          widget.story.audioPath,
-        );
-        _audioUrl = await ref.getDownloadURL();
+        final downloadService = ref.read(downloadedStoriesProvider.notifier);
+        final localAudioPath = await downloadService.getLocalAudioPath(widget.story.id);
+
+        if (localAudioPath != null) {
+          _audioUrl = 'file://$localAudioPath';
+        } else {
+          final sRef = FirebaseStorage.instance.ref().child(widget.story.audioPath);
+          _audioUrl = await sRef.getDownloadURL();
+        }
+
         if (_audioUrl != null) {
           String? thumbnailUrl;
           try {
-            if (widget.story.thumbnailPath.isNotEmpty) {
+            final localThumbPath = await downloadService.getLocalThumbnailPath(widget.story.id);
+            if (localThumbPath != null) {
+              thumbnailUrl = 'file://$localThumbPath';
+            } else if (widget.story.thumbnailPath.isNotEmpty) {
               final thumbRef = FirebaseStorage.instance.ref().child(widget.story.thumbnailPath);
               thumbnailUrl = await thumbRef.getDownloadURL();
             }
@@ -229,9 +241,15 @@ class _StoryReadPageState extends ConsumerState<StoryReadPage> {
             left: 0,
             right: 0,
             height: size.height * 0.6,
-            child: StorageImage(
-              path: widget.story.thumbnailPath,
-              fit: BoxFit.cover,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final isDownloaded = ref.watch(downloadedStoriesProvider).containsKey(widget.story.id);
+                return StorageImage(
+                  path: widget.story.thumbnailPath,
+                  localFallbackId: isDownloaded ? widget.story.id : null,
+                  fit: BoxFit.cover,
+                );
+              },
             ),
           ),
 
@@ -287,27 +305,91 @@ class _StoryReadPageState extends ConsumerState<StoryReadPage> {
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    setState(() {
+                      _isRepeat = !_isRepeat;
+                    });
+                    if (_isRepeat) {
+                      _audioPlayer.setLoopMode(LoopMode.one);
+                    } else {
+                      _audioPlayer.setLoopMode(LoopMode.off);
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: _isRepeat ? Colors.white : Colors.black.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.cloud_sync_outlined, color: Colors.white, size: 20),
+                    child: Icon(
+                      Icons.repeat, 
+                      color: _isRepeat ? Colors.black : Colors.white, 
+                      size: 20,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.file_download_outlined, color: Colors.white, size: 20),
-                  ),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final isDownloaded = ref.watch(downloadedStoriesProvider).containsKey(widget.story.id);
+                    
+                    return GestureDetector(
+                      onTap: () async {
+                        if (_isDownloading) return;
+                        
+                        if (isDownloaded) {
+                          final shouldRemove = await showDialog<bool>(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                title: const Text('Remove Download?'),
+                                content: const Text('This will remove the story from your device. You will need an internet connection to listen to it again.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Theme.of(context).colorScheme.error,
+                                    ),
+                                    child: const Text('Remove'),
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+                          
+                          if (shouldRemove == true) {
+                            await ref.read(downloadedStoriesProvider.notifier).removeStory(widget.story.id);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          }
+                        } else {
+                          setState(() => _isDownloading = true);
+                          await ref.read(downloadedStoriesProvider.notifier).downloadStory(widget.story);
+                          if (mounted) setState(() => _isDownloading = false);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDownloaded ? Colors.white : Colors.black.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: _isDownloading
+                            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: isDownloaded ? Colors.black : Colors.white, strokeWidth: 2))
+                            : Icon(
+                                isDownloaded ? Icons.cloud_done : Icons.cloud_download_outlined,
+                                color: isDownloaded ? Colors.black : Colors.white,
+                                size: 20,
+                              ),
+                      ),
+                    );
+                  }
                 ),
               ],
             ),
@@ -336,9 +418,15 @@ class _StoryReadPageState extends ConsumerState<StoryReadPage> {
                       ],
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: StorageImage(
-                      path: widget.story.thumbnailPath,
-                      fit: BoxFit.cover,
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final isDownloaded = ref.watch(downloadedStoriesProvider).containsKey(widget.story.id);
+                        return StorageImage(
+                          path: widget.story.thumbnailPath,
+                          localFallbackId: isDownloaded ? widget.story.id : null,
+                          fit: BoxFit.cover,
+                        );
+                      }
                     ),
                   ),
                 ),
@@ -554,6 +642,55 @@ class _StoryReadPageState extends ConsumerState<StoryReadPage> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          // 4. Downloading UI Overlay
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutBack,
+            bottom: _isDownloading ? 40 : -100,
+            left: 32,
+            right: 32,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Downloading your story...',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

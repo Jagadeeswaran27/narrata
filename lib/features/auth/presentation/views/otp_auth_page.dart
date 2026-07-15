@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:narrata/core/utils/custom_toast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 
@@ -93,13 +95,7 @@ class _OtpAuthPageState extends ConsumerState<OtpAuthPage> {
       next.whenOrNull(
         error: (error, stackTrace) {
           if (ModalRoute.of(context)?.isCurrent != true) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.toString().replaceAll('Exception: ', '')),
-              backgroundColor: colorScheme.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          CustomToast.showError(context, error.toString().replaceAll('Exception: ', ''));
         },
       );
     });
@@ -197,6 +193,7 @@ class _OtpAuthPageState extends ConsumerState<OtpAuthPage> {
                           pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
                           showCursor: true,
                           keyboardType: TextInputType.number,
+                          enableIMEPersonalizedLearning: true,
                           autofillHints: const [AutofillHints.oneTimeCode],
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,

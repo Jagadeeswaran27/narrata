@@ -21,11 +21,12 @@ class BottomNavBar extends StatelessWidget {
           topRight: Radius.circular(28),
         ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 14, bottom: 14),
-          child: Row(
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 14,
+          bottom: 14 + MediaQuery.of(context).viewPadding.bottom,
+        ),
+        child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
@@ -57,7 +58,6 @@ class BottomNavBar extends StatelessWidget {
                 onTap: () => onDestinationSelected(3),
               ),
             ],
-          ),
         ),
       ),
     );

@@ -46,7 +46,7 @@ final class LibraryStoriesProvider
   }
 }
 
-String _$libraryStoriesHash() => r'bdf6f7856cac8e4af1a1afde44288bf6c6a397f3';
+String _$libraryStoriesHash() => r'2904248619932470de055f135d66cef2de1256a5';
 
 @ProviderFor(LibrarySelectedGenre)
 final librarySelectedGenreProvider = LibrarySelectedGenreProvider._();

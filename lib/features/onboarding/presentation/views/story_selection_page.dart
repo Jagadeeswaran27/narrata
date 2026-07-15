@@ -232,7 +232,7 @@ class _GenreSectionState extends ConsumerState<GenreSection> {
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          Colors.black.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.8),
                           Colors.transparent,
                         ],
                       ),

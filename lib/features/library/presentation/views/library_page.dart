@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:narrata/core/utils/logger.dart';
+
 import 'package:narrata/core/widgets/user_library_section.dart';
 import 'package:narrata/core/widgets/expandable_search_header.dart';
 import 'package:narrata/features/library/presentation/view_models/library_view_model.dart';
@@ -32,7 +34,7 @@ class LibraryPage extends ConsumerWidget {
                 child: ExpandableSearchHeader(
                   title: 'LIBRARY',
                   onSearch: (query) {
-                    print('Search query: $query');
+                    appLogger.d('Search query: $query');
                   },
                 ),
               ),

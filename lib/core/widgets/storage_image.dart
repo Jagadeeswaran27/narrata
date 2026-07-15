@@ -1,26 +1,60 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:narrata/core/services/download_service.dart';
+
 final storageUrlProvider = FutureProvider.family<String, String>((ref, path) async {
   if (path.isEmpty) return '';
   return await FirebaseStorage.instance.ref(path).getDownloadURL();
 });
 
+final localThumbPathProvider = FutureProvider.family<String?, String>((ref, id) async {
+  if (id.isEmpty) return null;
+  return await ref.read(downloadedStoriesProvider.notifier).getLocalThumbnailPath(id);
+});
+
 class StorageImage extends ConsumerWidget {
   final String path;
+  final String? localFallbackId;
   final BoxFit fit;
 
   const StorageImage({
     super.key,
     required this.path,
+    this.localFallbackId,
     this.fit = BoxFit.cover,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (localFallbackId != null) {
+      final localPathAsync = ref.watch(localThumbPathProvider(localFallbackId!));
+      return localPathAsync.when(
+        data: (localPath) {
+          if (localPath != null) {
+            return Image.file(
+              File(localPath),
+              fit: fit,
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildPlaceholder(context, isError: true),
+            );
+          }
+          return _buildNetworkImage(context, ref);
+        },
+        loading: () => _buildNetworkImage(context, ref),
+        error: (error, stackTrace) => _buildNetworkImage(context, ref),
+      );
+    }
+    
+    return _buildNetworkImage(context, ref);
+  }
+
+  Widget _buildNetworkImage(BuildContext context, WidgetRef ref) {
     if (path.isEmpty) {
       return _buildPlaceholder(context);
     }
@@ -39,7 +73,7 @@ class StorageImage extends ConsumerWidget {
         );
       },
       loading: () => _buildPlaceholder(context),
-      error: (_, __) => _buildPlaceholder(context, isError: true),
+      error: (error, stackTrace) => _buildPlaceholder(context, isError: true),
     );
   }
 

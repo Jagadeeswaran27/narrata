@@ -4,11 +4,11 @@ import 'package:image/image.dart' as img;
 void main() {
   final inputPath = 'assets/images/divider.png';
   final outputPath = 'assets/images/divider_trimmed.png';
-  
+
   final imageBytes = File(inputPath).readAsBytesSync();
   final originalImage = img.decodeImage(imageBytes);
   if (originalImage == null) return;
-  
+
   int minX = originalImage.width;
   int minY = originalImage.height;
   int maxX = 0;
@@ -17,7 +17,8 @@ void main() {
   for (int y = 0; y < originalImage.height; y++) {
     for (int x = 0; x < originalImage.width; x++) {
       final pixel = originalImage.getPixel(x, y);
-      if (pixel.a > 0) { // If pixel is not fully transparent
+      if (pixel.a > 0) {
+        // If pixel is not fully transparent
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
@@ -28,7 +29,8 @@ void main() {
 
   // If the image is entirely transparent, skip
   if (minX > maxX || minY > maxY) {
-    print('Image is completely transparent.');
+    // ignore: avoid_print
+    print('Image is fully transparent or no opaque pixels found.');
     return;
   }
 
@@ -44,5 +46,6 @@ void main() {
   );
 
   File(outputPath).writeAsBytesSync(img.encodePng(croppedImage));
-  print('Saved \$outputPath (Width: \$croppedWidth, Height: \$croppedHeight)');
+  // ignore: avoid_print
+  print('Trimmed image saved to $outputPath (Width: $croppedWidth, Height: $croppedHeight)');
 }

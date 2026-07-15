@@ -4,9 +4,38 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:narrata/core/utils/custom_toast.dart';
+
 import 'package:narrata/features/auth/domain/models/user_model.dart';
 import 'package:narrata/features/auth/presentation/view_models/current_user_provider.dart';
 import 'package:narrata/features/auth/data/repositories/firebase_auth_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:narrata/core/router/app_router.dart';
+
+final autoSaveProvider = NotifierProvider<AutoSaveNotifier, bool>(() {
+  return AutoSaveNotifier();
+});
+
+class AutoSaveNotifier extends Notifier<bool> {
+  static const _key = 'auto_save_preference';
+
+  @override
+  bool build() {
+    _loadPreference();
+    return false;
+  }
+
+  Future<void> _loadPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> toggle() async {
+    state = !state;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, state);
+  }
+}
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -335,9 +364,25 @@ class ProfileScreen extends ConsumerWidget {
         _buildSectionTitle(context, 'App Preferences'),
         _buildSettingsCard([
           _buildSettingsTile(
+            Icons.download_for_offline_outlined,
+            'Your Downloads',
+            onTap: () => ref.read(appRouterProvider).push('/downloads'),
+          ),
+          _buildSettingsTile(
             Icons.headphones_outlined,
             'Audio Quality',
             trailingText: 'High',
+          ),
+          _buildSettingsTile(
+            Icons.cloud_sync_outlined,
+            'Auto-save Progress',
+            trailingWidget: Switch(
+              value: ref.watch(autoSaveProvider),
+              onChanged: (_) => ref.read(autoSaveProvider.notifier).toggle(),
+              activeThumbColor: colorScheme.primary,
+            ),
+            showChevron: false,
+            onTap: () => ref.read(autoSaveProvider.notifier).toggle(),
           ),
           _buildSettingsTile(
             Icons.notifications_outlined,
@@ -425,6 +470,7 @@ class ProfileScreen extends ConsumerWidget {
     IconData icon,
     String title, {
     String? trailingText,
+    Widget? trailingWidget,
     bool isDestructive = false,
     bool showChevron = true,
     VoidCallback? onTap,
@@ -450,7 +496,10 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              if (trailingText != null)
+              if (trailingWidget != null) ...[
+                const Spacer(),
+                trailingWidget,
+              ] else if (trailingText != null)
                 Expanded(
                   child: Text(
                     trailingText,
@@ -481,7 +530,6 @@ class ProfileScreen extends ConsumerWidget {
     final controller = TextEditingController(text: currentValue);
     final isEmail = field == 'Email';
     final isPhone = field == 'Phone';
-    final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
       context: context,
@@ -527,30 +575,17 @@ class ProfileScreen extends ConsumerWidget {
                               }
                               if (context.mounted) {
                                 Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '$field updated successfully!',
-                                    ),
-                                    backgroundColor: Colors.green.shade600,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
+                                CustomToast.showSuccess(
+                                  context,
+                                  '$field updated successfully!',
                                 );
                               }
                             } catch (e) {
                               if (context.mounted) {
                                 setState(() => isLoading = false);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      e.toString().replaceAll(
-                                        'Exception: ',
-                                        '',
-                                      ),
-                                    ),
-                                    backgroundColor: colorScheme.error,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
+                                CustomToast.showError(
+                                  context,
+                                  e.toString().replaceAll('Exception: ', ''),
                                 );
                               }
                             }

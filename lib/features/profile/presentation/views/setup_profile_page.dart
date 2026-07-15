@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:narrata/core/utils/custom_toast.dart';
+
 import 'package:narrata/core/widgets/auth_text_field.dart';
 import 'package:narrata/core/widgets/focus_dismissible.dart';
 import 'package:narrata/features/auth/data/repositories/firebase_auth_repository.dart';
@@ -34,13 +36,7 @@ class _SetupProfilePageState extends ConsumerState<SetupProfilePage> {
       } catch (e) {
         if (mounted) {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          CustomToast.showError(context, e.toString().replaceAll('Exception: ', ''));
         }
       }
     }

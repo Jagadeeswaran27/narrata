@@ -17,6 +17,7 @@ void main() {
   final padded = img.Image(width: 1152, height: 1152, numChannels: 4);
   img.compositeImage(padded, resized, dstX: (1152 - 768) ~/ 2, dstY: (1152 - 768) ~/ 2);
   File(androidPath).writeAsBytesSync(img.encodePng(padded));
+  // ignore: avoid_print
   print('Saved $androidPath');
 
   // 2. iOS Solid Background (#F7F3EB = 247, 243, 235)
@@ -25,5 +26,6 @@ void main() {
   img.fill(iosBg, color: img.ColorRgba8(247, 243, 235, 255));
   img.compositeImage(iosBg, resized, dstX: (1152 - 768) ~/ 2, dstY: (1152 - 768) ~/ 2);
   File(iosPath).writeAsBytesSync(img.encodePng(iosBg));
+  // ignore: avoid_print
   print('Saved $iosPath');
 }

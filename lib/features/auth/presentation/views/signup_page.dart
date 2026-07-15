@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:narrata/core/utils/custom_toast.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:narrata/core/widgets/auth_divider.dart';
@@ -57,13 +59,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       next.whenOrNull(
         error: (error, stackTrace) {
           if (ModalRoute.of(context)?.isCurrent != true) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.toString().replaceAll('Exception: ', '')),
-              backgroundColor: colorScheme.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          CustomToast.showError(context, error.toString().replaceAll('Exception: ', ''));
         },
       );
     });

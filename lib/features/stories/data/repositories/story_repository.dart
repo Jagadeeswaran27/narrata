@@ -25,8 +25,6 @@ class StoryRepository {
         .collection('user_stories')
         .get();
 
-    if (userStoriesSnapshot.docs.isEmpty) return [];
-
     final storyIds = userStoriesSnapshot.docs.map((doc) => doc.id).toList();
 
     // 2. Fetch the actual stories

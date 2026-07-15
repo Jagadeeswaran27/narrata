@@ -62,7 +62,9 @@ class UserLibrarySection extends StatelessWidget {
 
         final filteredStories = stories.where((story) {
           if (story.title.trim().isEmpty) return false;
+          
           if (selectedGenre == 'All') return true;
+          
           final displayGenre = story.genre
               .split('_')
               .map(

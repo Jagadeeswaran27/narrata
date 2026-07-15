@@ -12,8 +12,8 @@ Future<List<Story>> libraryStories(Ref ref) async {
   if (user == null) return [];
 
   final repository = ref.watch(storyRepositoryProvider);
-  // Force a refetch/new query instance since we want fresh data for the library.
-  return repository.getUserSelectedStories(user.id);
+  final stories = await repository.getUserSelectedStories(user.id);
+  return stories;
 }
 
 @riverpod

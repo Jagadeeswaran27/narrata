@@ -8,6 +8,7 @@ import 'package:audio_session/audio_session.dart';
 
 import 'package:narrata/core/router/app_router.dart';
 import 'package:narrata/core/theme/app_theme.dart';
+import 'package:narrata/core/widgets/connectivity_wrapper.dart';
 import 'package:narrata/firebase_options.dart';
 
 void main() async {
@@ -41,6 +42,11 @@ class NarrataApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       routerConfig: router,
+      builder: (context, child) {
+        return ConnectivityWrapper(
+          child: child ?? const SizedBox(),
+        );
+      },
     );
   }
 }

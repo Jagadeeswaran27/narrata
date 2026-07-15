@@ -20,6 +20,7 @@ import 'package:narrata/core/widgets/main_scaffold.dart';
 
 import 'package:narrata/features/stories/presentation/views/story_read_page.dart';
 import 'package:narrata/features/stories/domain/models/story.dart';
+import 'package:narrata/features/downloads/presentation/views/downloads_page.dart';
 
 part 'app_router.g.dart';
 
@@ -168,6 +169,10 @@ GoRouter appRouter(Ref ref) {
           final story = state.extra as Story;
           return StoryReadPage(story: story);
         },
+      ),
+      GoRoute(
+        path: '/downloads',
+        builder: (context, state) => const DownloadsPage(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
